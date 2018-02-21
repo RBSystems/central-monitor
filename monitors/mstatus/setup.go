@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 
@@ -32,7 +33,7 @@ func getMSToCheck() []msCheck {
 }
 
 func BaseResolution(ErrorStr string, address string, ms msCheck) func() (string, error) {
-	if ErrorStr != "timeout" {
+	if ErrorStr != "timeout" && ErrorStr != "conn_refused" {
 		//we don't know the reror, go ahead and report it
 		return func() (string, error) {
 			msg := fmt.Sprintf("Unknown Error String from MStatus: %v. Need to report", ErrorStr)
@@ -45,7 +46,7 @@ func BaseResolution(ErrorStr string, address string, ms msCheck) func() (string,
 	return func() (string, error) {
 
 		//we just need to restart the docker container
-		log.Printf(color.HiGreenString("[resolution-%v] Starting Resolution function for issue %v, microservice %v, address %v", address, ms.Name, ErrorStr, address))
+		log.Printf(color.HiGreenString("[resolution-%v] Starting Resolution function for issue %v, microservice %v, address %v", address, ErrorStr, ms.Name, address))
 		conn, err := ssh.Dial("tcp", address+":22", sshconfig)
 		if err != nil {
 			log.Printf(color.HiRedString("[resolution-%v] Could not ssh into device, error: %v", address, err.Error()))
@@ -57,7 +58,6 @@ func BaseResolution(ErrorStr string, address string, ms msCheck) func() (string,
 			log.Printf(color.HiRedString("[resolution-%v] Could not create ssh session, error: %v", address, err.Error()))
 			return "error", errors.New(fmt.Sprintf("Error creating ssh session on device %v. Error: %v", address, err.Error()))
 		}
-
 		out, err := session.CombinedOutput(getRestartDockerCommandFromMS(ms.Name))
 		if err != nil {
 			cmd := getRestartDockerCommandFromMS(ms.Name)
@@ -66,10 +66,12 @@ func BaseResolution(ErrorStr string, address string, ms msCheck) func() (string,
 		}
 
 		// check the output
-		if string(out) == getContainerNameFromMS(ms.Name) {
-			log.Printf(color.HiGreenString("[resolution-%v] Container restarted."))
+		if strings.TrimSpace(string(out)) == getContainerNameFromMS(ms.Name) {
+			log.Printf(color.HiGreenString("[resolution-%v] Container restarted.", address))
 			return "resolved", nil
 		}
+
+		log.Printf(color.HiRedString("[resolution-%v] Resolution failed. Unexpected output: '%v'", address, string(out)))
 		return "failure", errors.New(fmt.Sprintf("Unexpected response received: %s", out))
 	}
 }
@@ -95,5 +97,6 @@ func GetSSHConfig(address string) *ssh.ClientConfig {
 		Auth: []ssh.AuthMethod{
 			ssh.Password(os.Getenv("PI_SSH_PASSWORD")),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 }
