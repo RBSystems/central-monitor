@@ -21,8 +21,10 @@ import (
 func RunCheck(addr, hostname string) common.Report {
 	//go through and check each endpoint
 	ms := getMSToCheck()
+
+	log.Printf(color.HiBlueString("[Mstatus] check against device %v.", hostname))
 	for _, curMS := range ms {
-		log.Printf(color.HiBlueString("[Mstatus] check against device %v, microservice %v", hostname, curMS.Name))
+		//	log.Printf(color.HiBlueString("[Mstatus] check against device %v, microservice %v", hostname, curMS.Name))
 
 		address := strings.Replace(curMS.Endpoint, "$ADDRESS", addr, 1)
 
@@ -60,9 +62,7 @@ func RunCheck(addr, hostname string) common.Report {
 
 				msg, err := curMS.GetResolution("conn_refused", addr, curMS)()
 				if err != nil && msg == "error" {
-
-					//something happend where we couldn't carry out the resolution
-					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Problem running resolution: %v", err.Error()), hostname)
+					//something happend where we couldn't carry out the resolution LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Problem running resolution: %v", err.Error()), hostname)
 					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
 
 				} else if err != nil && msg == "failure" {
@@ -81,9 +81,10 @@ func RunCheck(addr, hostname string) common.Report {
 			}
 		}
 
-		log.Printf(color.HiBlueString("[Mstatus] check against device %v, microservice %v Done.", hostname, curMS.Name))
+		//log.Printf(color.HiBlueString("[Mstatus] check against device %v, microservice %v Done.", hostname, curMS.Name))
 	}
 
+	log.Printf(color.HiBlueString("[Mstatus] check against device %v. Done.", hostname))
 	return common.Report{}
 }
 

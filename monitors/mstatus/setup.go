@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 
@@ -98,5 +99,6 @@ func GetSSHConfig(address string) *ssh.ClientConfig {
 			ssh.Password(os.Getenv("PI_SSH_PASSWORD")),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         3 * time.Second,
 	}
 }
