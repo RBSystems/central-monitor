@@ -44,11 +44,13 @@ func RunCheck(addr, hostname string) common.Report {
 				msg, err := curMS.GetResolution("timeout", addr, curMS)()
 				if err != nil && msg == "error" {
 
+					log.Printf("error1")
 					//something happend where we couldn't carry out the resolution
 					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Problem running resolution: %v", err.Error()), hostname)
 					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
-
+					break
 				} else if err != nil && msg == "failure" {
+					log.Printf("failure1")
 
 					//resolution failed
 					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Resolution Failed: %v", err.Error()), hostname)
@@ -62,11 +64,15 @@ func RunCheck(addr, hostname string) common.Report {
 
 				msg, err := curMS.GetResolution("conn_refused", addr, curMS)()
 				if err != nil && msg == "error" {
-					//something happend where we couldn't carry out the resolution LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Problem running resolution: %v", err.Error()), hostname)
-					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
+					log.Printf("error2")
 
+					//something happend where we couldn't carry out the resolution
+					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Problem running resolution: %v", err.Error()), hostname)
+					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
+					break
 				} else if err != nil && msg == "failure" {
 
+					log.Printf("failure2")
 					//resolution failed
 					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Resolution Failed: %v", err.Error()), hostname)
 					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
