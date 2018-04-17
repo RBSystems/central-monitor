@@ -1,0 +1,42 @@
+package main
+
+import (
+	"errors"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/byuoitav/central-monitor/monitors"
+)
+
+func main() {
+	lambda.Start(base)
+}
+
+type LambdaRequest struct {
+	RequestType string      `json:"request-type"`
+	ReqInfo     interface{} `json:"request-info"`
+}
+
+func base(request LambdaRequest) error {
+	switch request.RequestType {
+	case TYPE_MSTATUS:
+		return runMstatus(request)
+	default:
+		return errors.New("Invalid request type.")
+	}
+}
+
+func runMstatus(info LambdaRequest) error {
+
+	designations := []string{}
+
+	for i := range info.ReqInfo.([]interface{}) {
+		designation, ok := info.ReqInfo.([]interface{})[i].(string)
+		if !ok {
+			return errors.New("Invalid arguments for MSTATUS. Expected is a list of designations to check")
+		}
+		designations = append(designations, designation)
+	}
+
+	_, err := monitors.RunMStatus(designations)
+	return err
+}

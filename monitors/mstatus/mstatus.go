@@ -55,6 +55,9 @@ func RunCheck(addr, hostname string) common.Report {
 					//resolution failed
 					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Resolution Failed: %v", err.Error()), hostname)
 					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
+				} else if err == nil && msg == "resolved" {
+
+					LogEvent(ei.HEALTH, "Error-Resolution", "[MSTATUS] Resolution Succesful.", hostname)
 				}
 
 			} else if urlError, ok := err.(*url.Error); ok && urlError.Op == "Get" {
@@ -76,6 +79,9 @@ func RunCheck(addr, hostname string) common.Report {
 					//resolution failed
 					LogEvent(ei.HEALTH, "System Error", fmt.Sprintf("[MSTATUS] Resolution Failed: %v", err.Error()), hostname)
 					LogEvent(ei.ERROR, "[MSTATUS]", fmt.Sprintf("Mstatus timed out for microservice: %v.", curMS.Name), hostname)
+				} else if err == nil && msg == "resolved" {
+
+					LogEvent(ei.HEALTH, "Error-Resolution", "[MSTATUS] Resolution Succesful", hostname)
 				}
 			} else {
 				log.Printf(color.HiRedString("There was a problem with the request: %v", err.Error()))
