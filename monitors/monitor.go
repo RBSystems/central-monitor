@@ -103,6 +103,8 @@ func GetDevicesByBranch(branch, deviceRole, deviceType string) ([]structs.Device
 		return []structs.Device{}, err
 	}
 
+	defer resp.Body.Close()
+
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Error getting devices 2: %v", err.Error())
